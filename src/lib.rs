@@ -1,16 +1,51 @@
 #![no_main]
 #![no_std]
+#![feature(let_chains)]
+#![feature(alloc_error_handler)]
 
+#[macro_export]
+macro_rules! outputs {
+    ($($pin:expr),* $(,)?) => {{
+        use embassy_stm32::gpio::{Level, Output, Speed, Pin};
+
+        [$(
+            Output::new($pin.degrade(), Level::Low, Speed::High),
+        )*]
+    }
+}}
+
+#[macro_export]
+macro_rules! inputs {
+    ($($pin:expr),* $(,)?) => {{
+        use embassy_stm32::gpio::{Input, Pull, Pin};
+
+        [$(
+            Input::new($pin.degrade(), Pull::Down),
+        )*]
+    }
+}}
+
+mod drivers;
+pub mod keyboards;
+
+use alloc_cortex_m::CortexMHeap;
+use core::alloc::Layout;
 use defmt_rtt as _; // global logger
 
-use stm32f3xx_hal as _; // memory layout
-
 use panic_probe as _;
+
+#[global_allocator]
+static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 
 // same panicking *behavior* as `panic-probe` but doesn't print a panic message
 // this prevents the panic message being printed *twice* when `defmt::panic` is invoked
 #[defmt::panic_handler]
 fn panic() -> ! {
+    cortex_m::asm::udf()
+}
+
+#[alloc_error_handler]
+fn oom(_: Layout) -> ! {
     cortex_m::asm::udf()
 }
 
