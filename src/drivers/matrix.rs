@@ -87,16 +87,19 @@ impl<const COLS: usize, const ROWS: usize, T> Matrix<{ COLS }, { ROWS }, T> {
 
     pub async fn update(&mut self) -> Option<tinyvec::TinyVec<[KeyEvent; 6]>> {
         let changes = self.raw_update();
-        if let Some(debounce) = self.debounce
-            && !changes.is_empty() {
-            Timer::after(debounce).await;
-            if self.raw_update().is_empty() {
-                Some(changes)
+        if !changes.is_empty() {
+            if let Some(debounce) = self.debounce {
+                Timer::after(debounce).await;
+                if self.raw_update().is_empty() {
+                    Some(changes)
+                } else {
+                    None
+                }
             } else {
-                None
+                Some(changes)
             }
         } else {
-            Some(changes)
+            None
         }
     }
 }
