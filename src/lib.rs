@@ -2,6 +2,10 @@
 #![no_std]
 #![feature(let_chains)]
 #![feature(alloc_error_handler)]
+#![feature(generic_associated_types)]
+#![feature(associated_type_defaults)]
+
+extern crate alloc;
 
 #[macro_export]
 macro_rules! outputs {
@@ -25,17 +29,25 @@ macro_rules! inputs {
     }
 }}
 
-mod drivers;
-pub mod keyboards;
+pub mod drivers;
+pub mod keycodes;
+pub mod layout;
+
+use core::alloc::Layout;
 
 use alloc_cortex_m::CortexMHeap;
-use core::alloc::Layout;
 use defmt_rtt as _; // global logger
-
 use panic_probe as _;
 
 #[global_allocator]
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
+
+pub fn init_alloc() {
+    use core::mem::MaybeUninit;
+    const HEAP_SIZE: usize = 1024;
+    static mut HEAP: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];
+    unsafe { ALLOCATOR.init(HEAP.as_ptr() as usize, HEAP_SIZE) }
+}
 
 // same panicking *behavior* as `panic-probe` but doesn't print a panic message
 // this prevents the panic message being printed *twice* when `defmt::panic` is invoked
