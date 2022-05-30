@@ -40,7 +40,7 @@ where
             (!led_lock[2] as u8) << 7,
             (!led_lock[1] as u8) << 6 | (!led_lock[0] as u8) << 7,
         ];
-        for (y, row) in (0..6).zip(matrix.iter_mut()) {
+        for (y, row) in (0..6).zip(matrix.iter_mut().skip(6)) {
             self.ext
                 .set_all([0x01 << y | led_mask[0], led_mask[1]])
                 .await?;
@@ -68,12 +68,10 @@ where
             let mut has_changed = false;
             for (y, row_pin) in self.rows.iter_mut().enumerate() {
                 row_pin.set_high();
-                // Note: QMK orders the pin state changes such that it can skip this delay if it already had to wait for I2C
-                // TODO: Replicate this while keeping the code readable
-                block_for(Duration::from_micros(10));
+                // Note: No delay is necessary here, signal propagation takes 1ns, MCU period is 14ns @ 72MHz
                 for (x, col) in self.cols.iter().enumerate() {
                     let val = col.is_high();
-                    if matrix[x][y] != val {
+                    if matrix[y][x] != val {
                         has_changed = true;
                         matrix[y][x] = val;
                     }
@@ -88,7 +86,7 @@ where
             if self.ext_init {
                 let res = self.scan_ext(matrix).await;
                 match res {
-                    Ok(e) => has_changed = e,
+                    Ok(e) => has_changed |= e,
                     Err(_) => {
                         self.ext_init = false;
                         error!("Failed to scan right half of Moonlander despite it being initialized. This error is expected if you just unplugged it.");
