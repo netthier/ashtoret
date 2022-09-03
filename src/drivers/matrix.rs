@@ -1,6 +1,7 @@
 use core::future::Future;
-use embassy::time::{Duration, Timer};
+
 use embassy_stm32::gpio::{AnyPin, Input, Output};
+use embassy_time::{Duration, Timer};
 
 pub type MatrixArray<const CS: usize, const RS: usize> = [[bool; CS]; RS];
 

@@ -1,7 +1,7 @@
 use alloc::sync::Arc;
 
-use embassy::{blocking_mutex::raw::ThreadModeRawMutex, mutex::Mutex};
 use embassy_stm32::gpio::{AnyPin, Output};
+use embassy_sync::{blocking_mutex::raw::ThreadModeRawMutex, mutex::Mutex};
 
 pub struct Leds {
     pub left: [Output<'static, AnyPin>; 3],

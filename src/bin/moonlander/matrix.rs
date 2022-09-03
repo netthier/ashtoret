@@ -6,12 +6,9 @@ use ashtoret::drivers::{
     mcp23018::{Mcp23018, Port},
 };
 use defmt::error;
-use embassy::{
-    blocking_mutex::raw::ThreadModeRawMutex,
-    mutex::Mutex,
-    time::{block_for, Duration},
-};
 use embassy_stm32::gpio::{AnyPin, Input, Output};
+use embassy_sync::{blocking_mutex::raw::ThreadModeRawMutex, mutex::Mutex};
+use embassy_time::{block_for, Duration};
 use embedded_hal_async::i2c::I2c;
 
 pub struct MoonlanderMatrix<I2C> {

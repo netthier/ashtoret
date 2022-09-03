@@ -29,6 +29,7 @@ macro_rules! inputs {
     }
 }}
 
+pub mod component;
 pub mod drivers;
 pub mod keycodes;
 pub mod layout;
